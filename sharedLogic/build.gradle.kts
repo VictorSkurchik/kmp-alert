@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
+    alias(libs.plugins.skie)
 }
 
 kotlin {
@@ -13,6 +14,8 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "SharedLogic"
             isStatic = true
+            export(project(":core-ble"))
+            export(project(":core-alert"))
         }
     }
     
@@ -34,7 +37,13 @@ kotlin {
     
     sourceSets {
         commonMain.dependencies {
-            // put your Multiplatform dependencies here
+            api(project(":core-ble"))
+            api(project(":core-alert"))
+            api(libs.androidx.lifecycle.viewmodel)
+            implementation(libs.kotlinx.coroutines.core)
+        }
+        androidMain.dependencies {
+            implementation(libs.androidx.core.ktx)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
