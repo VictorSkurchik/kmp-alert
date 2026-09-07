@@ -11,6 +11,7 @@ import by.vsdev.blealert.core.ble.BleScanner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -44,6 +45,11 @@ class MonitoringRepository(
                 _discoveredDevices.update { current ->
                     if (current.any { it.id == device.id }) current else current + device
                 }
+            }
+            .catch { e ->
+                // Scanning can legitimately fail (permission denied, Bluetooth off) - surface it
+                // as a disconnected state instead of crashing the process/foreground service.
+                _connectionState.value = ConnectionUiState.DISCONNECTED
             }
             .launchIn(scope)
     }

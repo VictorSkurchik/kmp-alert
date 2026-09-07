@@ -53,5 +53,3 @@ class BleAlertClient {
 }
 
 class BleClientException(val error: BleError) : Exception()
-
-private fun Exception.toBleError(): BleError = BleError.Unknown(message)
