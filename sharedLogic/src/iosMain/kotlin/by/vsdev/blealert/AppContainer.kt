@@ -25,5 +25,6 @@ class AppContainer {
         alertHistory = alertHistory,
     )
 
-    fun createMonitoringViewModel(): MonitoringViewModel = MonitoringViewModel(monitoringRepository)
+    fun createMonitoringViewModel(): MonitoringViewModel =
+        MonitoringViewModel(monitoringRepository, notificationPermissionManager)
 }

@@ -31,7 +31,8 @@ class AppContainer private constructor(context: Context) {
         alertHistory = alertHistory,
     )
 
-    fun createMonitoringViewModel(): MonitoringViewModel = MonitoringViewModel(monitoringRepository)
+    fun createMonitoringViewModel(): MonitoringViewModel =
+        MonitoringViewModel(monitoringRepository, notificationPermissionManager)
 
     companion object {
         @Volatile

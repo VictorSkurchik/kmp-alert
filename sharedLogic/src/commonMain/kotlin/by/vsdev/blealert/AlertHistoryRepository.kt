@@ -13,4 +13,8 @@ class AlertHistoryRepository {
     fun record(alert: Alert) {
         _alerts.update { it + alert }
     }
+
+    fun clear() {
+        _alerts.value = emptyList()
+    }
 }
