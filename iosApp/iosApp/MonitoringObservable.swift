@@ -29,14 +29,14 @@ final class MonitoringObservable: ObservableObject {
     }
 
     private func observeUiState() async {
-        for await state in viewModel.uiState.asAsyncStream(of: MonitoringUiState.self) {
+        for await state in viewModel.uiState {
             connectionState = state.connectionState
             alerts = state.alerts
         }
     }
 
     private func observeDevices() async {
-        for await deviceList in viewModel.devices.asAsyncStream(of: [BleDevice].self) {
+        for await deviceList in viewModel.devices {
             devices = deviceList
         }
     }
