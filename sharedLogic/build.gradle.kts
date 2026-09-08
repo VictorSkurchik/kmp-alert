@@ -3,22 +3,12 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
-    alias(libs.plugins.skie)
 }
 
 kotlin {
-    listOf(
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "SharedLogic"
-            isStatic = true
-            export(project(":core-ble"))
-            export(project(":core-alert"))
-        }
-    }
-    
+    iosArm64()
+    iosSimulatorArm64()
+
     android {
        namespace = "by.vsdev.blealert.sharedLogic"
        compileSdk = libs.versions.android.compileSdk.get().toInt()

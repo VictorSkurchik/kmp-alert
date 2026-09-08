@@ -1,5 +1,5 @@
 import SwiftUI
-import SharedLogic
+import SharedUI
 
 @main
 struct iOSApp: App {
@@ -7,7 +7,8 @@ struct iOSApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView(appContainer: appContainer)
+            ComposeView(viewModel: appContainer.createMonitoringViewModel())
+                .ignoresSafeArea()
                 .task {
                     _ = try? await appContainer.notificationPermissionManager.requestPermission()
                 }

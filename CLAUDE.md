@@ -3,16 +3,21 @@
 ## Архитектура
 
 Kotlin Multiplatform + Compose Multiplatform, Clean Architecture, модульная сборка, SOLID.
-Android UI использует atomic design (atoms/molecules/organisms/templates/screens в `sharedUI`).
-iOS использует нативный SwiftUI поверх общей бизнес-логики (не Compose UI на iOS), с SKIE для
-идиоматичного вызова Kotlin suspend-функций и `Flow` из Swift (`async`/`await`, `AsyncSequence`).
+UI и навигация — общие для Android и iOS: единый Compose Multiplatform слой (atomic design —
+atoms/molecules/organisms/templates/screens в `sharedUI`) поверх Navigation 3
+(`org.jetbrains.androidx.navigation3`). iOS-приложение — тонкая SwiftUI-обвязка, которая хостит
+Compose-контент через `ComposeUIViewController`; SKIE используется только там, где Swift всё ещё
+напрямую вызывает Kotlin suspend-функции (например, запрос разрешения на уведомления при старте
+приложения) — весь UI-стейт (`Flow`/`StateFlow`) остаётся внутри Compose и не пересекает границу
+Swift.
 
 Модули:
 - `androidApp` — Android-приложение: DI-обвязка, разрешения, манифест, foreground-сервис.
-- `iosApp` — Xcode-проект, нативный SwiftUI, линкует фреймворк `SharedLogic`.
-- `sharedLogic` — доменный/оркестрирующий слой, единственный модуль, который собирает и
-  экспортирует iOS-фреймворк (реэкспортирует публичные API `core-ble` и `core-alert`).
-- `sharedUI` — Compose Multiplatform UI для Android (atomic design).
+- `iosApp` — Xcode-проект, тонкая обвязка над Compose Multiplatform UI, линкует фреймворк `SharedUI`.
+- `sharedLogic` — доменный/оркестрирующий слой (реэкспортирует публичные API `core-ble` и
+  `core-alert`); framework для iOS больше не собирает — эту роль взял на себя `sharedUI`.
+- `sharedUI` — общий Compose Multiplatform UI для Android и iOS (atomic design, Navigation 3),
+  единственный модуль, который iOS импортирует напрямую (реэкспортирует `sharedLogic`).
 - `core-ble` — работа с BLE (сканирование, GATT-подключение/подписка) через Kable.
 - `core-alert` — модуль Alert Notification: доменная модель алертов, разбор payload, платформенные уведомления.
 
