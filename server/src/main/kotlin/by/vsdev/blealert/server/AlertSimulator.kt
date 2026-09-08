@@ -1,9 +1,9 @@
 package by.vsdev.blealert.server
 
-import by.vsdev.blealert.core.alert.Alert
-import by.vsdev.blealert.core.alert.AlertSeverity
-import by.vsdev.blealert.core.alert.AlertType
-import by.vsdev.blealert.core.alert.currentTimeMillis
+import by.vsdev.blealert.domain.Alert
+import by.vsdev.blealert.domain.AlertSeverity
+import by.vsdev.blealert.domain.AlertType
+import by.vsdev.blealert.domain.currentTimeMillis
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive

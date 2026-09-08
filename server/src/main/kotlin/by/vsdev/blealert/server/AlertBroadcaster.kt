@@ -1,6 +1,6 @@
 package by.vsdev.blealert.server
 
-import by.vsdev.blealert.core.alert.Alert
+import by.vsdev.blealert.domain.Alert
 import io.ktor.server.websocket.DefaultWebSocketServerSession
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.CompletableDeferred

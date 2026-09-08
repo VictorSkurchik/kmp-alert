@@ -28,9 +28,11 @@ dependencyResolutionManagement {
 }
 
 include(":androidApp")
-include(":sharedLogic")
 include(":sharedUI")
-include(":core-ble")
-include(":core-alert")
-include(":core-notification")
+include(":core-domain")
+include(":core-data")
+include(":core-ui")
+include(":feature-dashboard")
+include(":feature-monitoring")
+include(":feature-settings")
 include(":server")
