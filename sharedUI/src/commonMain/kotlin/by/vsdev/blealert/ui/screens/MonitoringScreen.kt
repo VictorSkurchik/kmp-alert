@@ -15,7 +15,11 @@ fun MonitoringScreen(viewModel: MonitoringViewModel, modifier: Modifier = Modifi
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(modifier = modifier.fillMaxSize()) {
-        ConnectionStatusBar(state = uiState.connectionState, onDisconnect = viewModel::disconnect)
+        ConnectionStatusBar(
+            state = uiState.connectionState,
+            onDisconnect = viewModel::disconnect,
+            onReconnect = viewModel::reconnect,
+        )
         AlertHistoryList(alerts = uiState.alerts, modifier = Modifier.weight(1f))
     }
 }

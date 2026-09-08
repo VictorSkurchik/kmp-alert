@@ -11,12 +11,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import by.vsdev.blealert.core.alert.Alert
 import by.vsdev.blealert.ui.molecules.AlertRow
+import kmp_ble_alert.sharedui.generated.resources.Res
+import kmp_ble_alert.sharedui.generated.resources.no_alerts_yet
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun AlertHistoryList(alerts: List<Alert>, modifier: Modifier = Modifier) {
     if (alerts.isEmpty()) {
         Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("No alerts yet", style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(Res.string.no_alerts_yet), style = MaterialTheme.typography.bodyMedium)
         }
         return
     }

@@ -12,9 +12,6 @@ import kotlinx.serialization.modules.polymorphic
 sealed interface Route : NavKey
 
 @Serializable
-data object ScanRoute : Route
-
-@Serializable
 data object DashboardRoute : Route
 
 @Serializable
@@ -26,7 +23,6 @@ data object SettingsRoute : Route
 private val navConfig = SavedStateConfiguration {
     serializersModule = SerializersModule {
         polymorphic(NavKey::class) {
-            subclass(ScanRoute::class, ScanRoute.serializer())
             subclass(DashboardRoute::class, DashboardRoute.serializer())
             subclass(MonitoringRoute::class, MonitoringRoute.serializer())
             subclass(SettingsRoute::class, SettingsRoute.serializer())
@@ -35,7 +31,7 @@ private val navConfig = SavedStateConfiguration {
 }
 
 @Composable
-fun rememberAppBackStack(): NavBackStack<NavKey> = rememberNavBackStack(navConfig, ScanRoute)
+fun rememberAppBackStack(): NavBackStack<NavKey> = rememberNavBackStack(navConfig, DashboardRoute)
 
 fun AppTab.toRoute(): Route = when (this) {
     AppTab.DASHBOARD -> DashboardRoute

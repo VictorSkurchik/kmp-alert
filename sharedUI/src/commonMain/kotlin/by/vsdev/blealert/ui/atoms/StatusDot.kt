@@ -16,8 +16,8 @@ fun StatusDot(color: Color, modifier: Modifier = Modifier) {
 }
 
 object StatusColors {
-    val connected: Color @Composable get() = MaterialTheme.colorScheme.primary
-    val connecting: Color @Composable get() = MaterialTheme.colorScheme.tertiary
+    val connected: Color @Composable get() = MaterialTheme.colorScheme.tertiary
+    val connecting: Color @Composable get() = MaterialTheme.colorScheme.primary
     val disconnected: Color @Composable get() = MaterialTheme.colorScheme.error
     val idle: Color @Composable get() = MaterialTheme.colorScheme.outline
 }

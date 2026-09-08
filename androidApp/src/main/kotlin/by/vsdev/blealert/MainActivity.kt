@@ -1,7 +1,6 @@
 package by.vsdev.blealert
 
 import android.Manifest
-import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -13,7 +12,7 @@ class MainActivity : ComponentActivity() {
 
     private val requestPermissions = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
-    ) { startMonitoringService() }
+    ) { }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -27,21 +26,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun startMonitoringService() {
-        val intent = Intent(this, BleMonitoringForegroundService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
-        }
-    }
-
     private fun requiredPermissions(): Array<String> {
         val permissions = mutableListOf<String>()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            permissions += Manifest.permission.BLUETOOTH_SCAN
-            permissions += Manifest.permission.BLUETOOTH_CONNECT
-        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissions += Manifest.permission.POST_NOTIFICATIONS
         }

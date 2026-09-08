@@ -20,7 +20,11 @@ fun DashboardScreen(viewModel: MonitoringViewModel, modifier: Modifier = Modifie
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(modifier = modifier.fillMaxWidth()) {
-        ConnectionStatusBar(state = uiState.connectionState, onDisconnect = viewModel::disconnect)
+        ConnectionStatusBar(
+            state = uiState.connectionState,
+            onDisconnect = viewModel::disconnect,
+            onReconnect = viewModel::reconnect,
+        )
         DashboardStatsGrid(
             alerts = uiState.alerts,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),

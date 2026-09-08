@@ -3,8 +3,7 @@ package by.vsdev.blealert
 import by.vsdev.blealert.core.alert.IosAlertNotifier
 import by.vsdev.blealert.core.alert.IosNotificationPermissionManager
 import by.vsdev.blealert.core.alert.NotificationPermissionManager
-import by.vsdev.blealert.core.ble.BleAlertClient
-import by.vsdev.blealert.core.ble.BleScanner
+import by.vsdev.blealert.core.notification.WebSocketNotificationService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -17,14 +16,20 @@ class AppContainer {
 
     val notificationPermissionManager: NotificationPermissionManager = IosNotificationPermissionManager()
 
-    val monitoringRepository = MonitoringRepository(
+    // iOS Simulator shares the host's network, so "localhost" reaches `:server` running on the
+    // same Mac. A real device needs the host's LAN IP or an ngrok tunnel instead.
+    private val notificationService = WebSocketNotificationService(
         scope = scope,
-        scanner = BleScanner(),
-        bleClient = BleAlertClient(),
-        alertNotifier = alertNotifier,
-        alertHistory = alertHistory,
+        backendUrl = "ws://localhost:8080/ws/alerts",
     )
 
+    private val remoteAlertCoordinator = RemoteAlertCoordinator(
+        scope = scope,
+        notificationService = notificationService,
+        alertNotifier = alertNotifier,
+        alertHistory = alertHistory,
+    ).also { it.start() }
+
     fun createMonitoringViewModel(): MonitoringViewModel =
-        MonitoringViewModel(monitoringRepository, notificationPermissionManager)
+        MonitoringViewModel(remoteAlertCoordinator, notificationPermissionManager)
 }

@@ -12,6 +12,13 @@ import androidx.compose.ui.unit.dp
 import by.vsdev.blealert.ConnectionUiState
 import by.vsdev.blealert.ui.atoms.StatusColors
 import by.vsdev.blealert.ui.atoms.StatusDot
+import kmp_ble_alert.sharedui.generated.resources.Res
+import kmp_ble_alert.sharedui.generated.resources.connection_state_connected
+import kmp_ble_alert.sharedui.generated.resources.connection_state_connecting
+import kmp_ble_alert.sharedui.generated.resources.connection_state_disconnected
+import kmp_ble_alert.sharedui.generated.resources.connection_state_idle
+import kmp_ble_alert.sharedui.generated.resources.connection_state_scanning
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ConnectionStatusChip(state: ConnectionUiState, modifier: Modifier = Modifier) {
@@ -21,9 +28,18 @@ fun ConnectionStatusChip(state: ConnectionUiState, modifier: Modifier = Modifier
         ConnectionUiState.DISCONNECTED -> StatusColors.disconnected
         ConnectionUiState.IDLE -> StatusColors.idle
     }
+    val label = stringResource(
+        when (state) {
+            ConnectionUiState.CONNECTED -> Res.string.connection_state_connected
+            ConnectionUiState.CONNECTING -> Res.string.connection_state_connecting
+            ConnectionUiState.SCANNING -> Res.string.connection_state_scanning
+            ConnectionUiState.DISCONNECTED -> Res.string.connection_state_disconnected
+            ConnectionUiState.IDLE -> Res.string.connection_state_idle
+        },
+    )
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         StatusDot(color)
         Spacer(modifier = Modifier.width(8.dp))
-        Text(text = state.name, style = MaterialTheme.typography.labelLarge)
+        Text(text = label, style = MaterialTheme.typography.labelLarge)
     }
 }

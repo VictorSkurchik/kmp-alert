@@ -29,6 +29,7 @@ kotlin {
         commonMain.dependencies {
             api(project(":core-ble"))
             api(project(":core-alert"))
+            api(project(":core-notification"))
             api(libs.androidx.lifecycle.viewmodel)
             implementation(libs.kotlinx.coroutines.core)
         }

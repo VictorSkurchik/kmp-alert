@@ -9,18 +9,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import by.vsdev.blealert.core.alert.Alert
 import by.vsdev.blealert.ui.molecules.AlertRow
+import kmp_ble_alert.sharedui.generated.resources.Res
+import kmp_ble_alert.sharedui.generated.resources.no_alerts_yet
+import kmp_ble_alert.sharedui.generated.resources.recent_alerts_title
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun RecentAlertsPreview(alerts: List<Alert>, modifier: Modifier = Modifier, maxItems: Int = 5) {
     Column(modifier = modifier) {
         Text(
-            text = "Recent alerts",
+            text = stringResource(Res.string.recent_alerts_title),
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         )
         if (alerts.isEmpty()) {
             Text(
-                text = "No alerts yet",
+                text = stringResource(Res.string.no_alerts_yet),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
