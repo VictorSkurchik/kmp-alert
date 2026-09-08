@@ -3,15 +3,14 @@ import SharedUI
 
 @main
 struct iOSApp: App {
-    private let appContainer = AppContainer()
+    init() {
+        KoinKt.doInitKoin(config: nil)
+    }
 
     var body: some Scene {
         WindowGroup {
-            ComposeView(viewModel: appContainer.createMonitoringViewModel())
+            ComposeView()
                 .ignoresSafeArea()
-                .task {
-                    _ = try? await appContainer.notificationPermissionManager.requestPermission()
-                }
         }
     }
 }

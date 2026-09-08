@@ -1,6 +1,6 @@
 package by.vsdev.blealert.server
 
-import by.vsdev.blealert.core.alert.Alert
+import by.vsdev.blealert.domain.Alert
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.URI

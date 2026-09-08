@@ -1,0 +1,9 @@
+<resources>
+    <string name="settings_section_notifications">Notifications</string>
+    <string name="settings_row_alert_notifications_title">Alert notifications</string>
+    <string name="settings_row_allowed">Allowed</string>
+    <string name="settings_row_not_allowed">Not allowed — tap to enable</string>
+    <string name="settings_section_alert_history">Alert history</string>
+    <string name="settings_row_clear_history_title">Clear alert history</string>
+    <string name="settings_row_alerts_stored">%d alerts stored</string>
+</resources>

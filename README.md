@@ -9,14 +9,16 @@ WebSocket с подтверждением получения (ACK); при не�
 Модули:
 
 - [`server`](./server) — Ktor-бэкенд: симулятор событий, WebSocket-рассылка с ACK, Telegram-fallback.
-- [`core-alert`](./core-alert) — доменная модель алертов, общий wire-контракт сервера и клиентов.
-- [`core-notification`](./core-notification) — WebSocket-клиент (`NotificationService`) для Android/iOS.
-- [`sharedLogic`](./sharedLogic) — DI-обвязка и оркестрация (`AppContainer`, `MonitoringViewModel`).
-- [`sharedUI`](./sharedUI) — общий Compose Multiplatform UI для Android и iOS (atomic design, Navigation 3).
+- [`core-domain`](./core-domain) — доменная модель алертов, общий wire-контракт сервера и клиентов,
+  интерфейсы (`AlertRepository`, `AlertNotifier`, `NotificationPermissionManager`).
+- [`core-data`](./core-data) — реализация: WebSocket-клиент, Koin-модули для DI.
+- [`core-ui`](./core-ui) — общие Compose-компоненты для нескольких экранов (тема, карточки алертов и т.д.).
+- [`feature-dashboard`](./feature-dashboard), [`feature-monitoring`](./feature-monitoring),
+  [`feature-settings`](./feature-settings) — по одному экрану на модуль, каждый со своей ViewModel.
+- [`sharedUI`](./sharedUI) — composition root: навигация (Navigation 3), Koin bootstrap,
+  единственный модуль, который iOS импортирует напрямую.
 - [`androidApp`](./androidApp) — Android-приложение.
 - [`iosApp`](./iosApp) — Xcode-проект, тонкая обвязка над Compose Multiplatform UI.
-- [`core-ble`](./core-ble) — работа с BLE через Kable. **Мёртвый код**: не участвует в потоке
-  данных приложения (заменён на backend-симуляцию через `core-notification`).
 
 ## Запуск
 
@@ -60,9 +62,9 @@ Telegram.
 
 ### 2. Клиенты
 
-Адрес бэкенда захардкожен в `sharedLogic/src/androidMain` и `sharedLogic/src/iosMain`
-(`AppContainer.kt`, поле `backendUrl`) — под конкретное окружение тестирования его нужно менять
-руками:
+Адрес бэкенда захардкожен в `core-data/src/androidMain`/`core-data/src/iosMain`
+(`BackendConfig.android.kt`/`BackendConfig.ios.kt`) — под конкретное окружение тестирования его
+нужно менять руками:
 
 | Клиент | Адрес по умолчанию | Когда менять |
 |---|---|---|

@@ -18,11 +18,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        val appContainer = AppContainer.getInstance(applicationContext)
         requestPermissions.launch(requiredPermissions())
 
         setContent {
-            App(viewModel = appContainer.createMonitoringViewModel())
+            App()
         }
     }
 

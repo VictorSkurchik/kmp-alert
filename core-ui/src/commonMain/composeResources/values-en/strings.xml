@@ -1,0 +1,27 @@
+<resources>
+    <string name="alert_type_motion">Motion detected</string>
+    <string name="alert_type_sos">SOS alert</string>
+    <string name="alert_type_device_offline">Sensor offline</string>
+    <string name="alert_type_woke_up">Woke up</string>
+    <string name="alert_type_long_bathroom_time">Long time in the bathroom</string>
+    <string name="alert_type_not_returned_home">Hasn\'t returned home</string>
+    <string name="alert_type_no_activity">No activity detected</string>
+
+    <string name="time_just_now">just now</string>
+    <string name="time_minutes_ago">%d min ago</string>
+    <string name="time_hours_ago">%d h ago</string>
+    <string name="time_days_ago">%d d ago</string>
+
+    <string name="no_alerts_yet">No alerts yet</string>
+    <string name="action_disconnect">Disconnect</string>
+    <string name="action_reconnect">Reconnect</string>
+
+    <string name="severity_info">INFO</string>
+    <string name="severity_warning">WARNING</string>
+    <string name="severity_critical">CRITICAL</string>
+
+    <string name="connection_state_idle">Idle</string>
+    <string name="connection_state_connecting">Connecting</string>
+    <string name="connection_state_connected">Connected</string>
+    <string name="connection_state_disconnected">Disconnected</string>
+</resources>

@@ -1,0 +1,27 @@
+<resources>
+    <string name="alert_type_motion">Обнаружено движение</string>
+    <string name="alert_type_sos">Сигнал SOS</string>
+    <string name="alert_type_device_offline">Датчик офлайн</string>
+    <string name="alert_type_woke_up">Проснулся(-ась)</string>
+    <string name="alert_type_long_bathroom_time">Долго в ванной</string>
+    <string name="alert_type_not_returned_home">Не вернулся(-ась) домой</string>
+    <string name="alert_type_no_activity">Нет активности</string>
+
+    <string name="time_just_now">сейчас</string>
+    <string name="time_minutes_ago">%d мин назад</string>
+    <string name="time_hours_ago">%d ч назад</string>
+    <string name="time_days_ago">%d дн назад</string>
+
+    <string name="no_alerts_yet">Пока нет уведомлений</string>
+    <string name="action_disconnect">Отключить</string>
+    <string name="action_reconnect">Переподключить</string>
+
+    <string name="severity_info">ИНФО</string>
+    <string name="severity_warning">ВНИМАНИЕ</string>
+    <string name="severity_critical">КРИТИЧНО</string>
+
+    <string name="connection_state_idle">Ожидание</string>
+    <string name="connection_state_connecting">Подключение</string>
+    <string name="connection_state_connected">Подключено</string>
+    <string name="connection_state_disconnected">Отключено</string>
+</resources>

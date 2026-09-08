@@ -9,7 +9,7 @@ application {
 }
 
 dependencies {
-    implementation(project(":core-alert"))
+    implementation(project(":core-domain"))
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
     implementation(libs.ktor.server.websockets)

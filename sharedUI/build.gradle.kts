@@ -6,7 +6,6 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinSerialization)
-    alias(libs.plugins.skie)
 }
 
 kotlin {
@@ -17,7 +16,6 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "SharedUI"
             isStatic = true
-            export(project(":sharedLogic"))
         }
     }
 
@@ -25,7 +23,7 @@ kotlin {
        namespace = "by.vsdev.blealert.sharedUI"
        compileSdk = libs.versions.android.compileSdk.get().toInt()
        minSdk = libs.versions.android.minSdk.get().toInt()
-    
+
        compilerOptions {
            jvmTarget = JvmTarget.JVM_11
        }
@@ -41,14 +39,19 @@ kotlin {
            instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
        }
     }
-    
+
     sourceSets {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)
         }
         commonMain.dependencies {
-            api(project(":sharedLogic"))
+            implementation(project(":core-domain"))
+            implementation(project(":core-ui"))
+            implementation(project(":core-data"))
+            implementation(project(":feature-dashboard"))
+            implementation(project(":feature-monitoring"))
+            implementation(project(":feature-settings"))
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
@@ -60,6 +63,8 @@ kotlin {
             implementation(libs.jetbrains.navigation3.ui)
             implementation(libs.kotlinx.serialization.core)
             implementation(libs.compose.material.iconsExtended)
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
