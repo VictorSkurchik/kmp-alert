@@ -30,3 +30,7 @@ dependencyResolutionManagement {
 include(":androidApp")
 include(":sharedLogic")
 include(":sharedUI")
+include(":core-ble")
+include(":core-alert")
+include(":core-notification")
+include(":server")

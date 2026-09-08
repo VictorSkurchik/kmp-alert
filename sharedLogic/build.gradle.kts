@@ -6,16 +6,9 @@ plugins {
 }
 
 kotlin {
-    listOf(
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "SharedLogic"
-            isStatic = true
-        }
-    }
-    
+    iosArm64()
+    iosSimulatorArm64()
+
     android {
        namespace = "by.vsdev.blealert.sharedLogic"
        compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -34,7 +27,14 @@ kotlin {
     
     sourceSets {
         commonMain.dependencies {
-            // put your Multiplatform dependencies here
+            api(project(":core-ble"))
+            api(project(":core-alert"))
+            api(project(":core-notification"))
+            api(libs.androidx.lifecycle.viewmodel)
+            implementation(libs.kotlinx.coroutines.core)
+        }
+        androidMain.dependencies {
+            implementation(libs.androidx.core.ktx)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

@@ -5,10 +5,22 @@ plugins {
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.skie)
 }
 
 kotlin {
-    
+    listOf(
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "SharedUI"
+            isStatic = true
+            export(project(":sharedLogic"))
+        }
+    }
+
     android {
        namespace = "by.vsdev.blealert.sharedUI"
        compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -45,6 +57,9 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.jetbrains.navigation3.ui)
+            implementation(libs.kotlinx.serialization.core)
+            implementation(libs.compose.material.iconsExtended)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
