@@ -1,28 +1,95 @@
-This is a Kotlin Multiplatform project targeting Android, iOS.
+# kmp-ble-alert
 
-* [/iosApp](./iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+Kotlin Multiplatform (Android + iOS) сервис удалённого мониторинга: критичные события
+("проснулся", "долго в ванной", "не вернулся домой", SOS и т.д.) симулируются на бэкенде
+(технология Wi-Fi Sensing эмулируется, без физического датчика) и доставляются клиентам по
+WebSocket с подтверждением получения (ACK); при недоставке за N секунд сервер дублирует сигнал
+в Telegram-бота. Подробности архитектуры — в [CLAUDE.md](./CLAUDE.md).
 
-* [/sharedLogic](./sharedLogic/src) is for the code that will be shared between app targets in the project.
-  The most important subfolder is [commonMain](./sharedLogic/src/commonMain/kotlin). If preferred, you
-  can add code to the platform-specific folders here too.
+Модули:
 
-* [/sharedUI](./sharedUI/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./sharedUI/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./sharedUI/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./sharedUI/src/jvmMain/kotlin)
-    folder is the appropriate location.
+- [`server`](./server) — Ktor-бэкенд: симулятор событий, WebSocket-рассылка с ACK, Telegram-fallback.
+- [`core-alert`](./core-alert) — доменная модель алертов, общий wire-контракт сервера и клиентов.
+- [`core-notification`](./core-notification) — WebSocket-клиент (`NotificationService`) для Android/iOS.
+- [`sharedLogic`](./sharedLogic) — DI-обвязка и оркестрация (`AppContainer`, `MonitoringViewModel`).
+- [`sharedUI`](./sharedUI) — общий Compose Multiplatform UI для Android и iOS (atomic design, Navigation 3).
+- [`androidApp`](./androidApp) — Android-приложение.
+- [`iosApp`](./iosApp) — Xcode-проект, тонкая обвязка над Compose Multiplatform UI.
+- [`core-ble`](./core-ble) — работа с BLE через Kable. **Мёртвый код**: не участвует в потоке
+  данных приложения (заменён на backend-симуляцию через `core-notification`).
 
-### Running the apps
+## Запуск
 
-Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and options:
+Порядок важен: сначала бэкенд, потом клиент — иначе клиент просто останется в состоянии
+`DISCONNECTED` (переподключение автоматическое, с backoff).
 
-- Android app: `./gradlew :androidApp:assembleDebug`
-- iOS app: open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+### 1. Бэкенд (`server`)
+
+Нужен Telegram-бот (токен от [@BotFather](https://t.me/BotFather)) и `chat_id`, куда слать
+fallback-сообщения.
+
+```bash
+cp server/.env.example server/.env
+# впишите в server/.env реальные TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID
+./gradlew :server:run
+```
+
+`server/.env` в `.gitignore` — секреты никогда не коммитятся. Gradle-таск `:server:run`
+подхватывает переменные из `server/.env` автоматически (см. `server/build.gradle.kts`); без
+файла нужно экспортировать `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID` в окружении вручную.
+
+Сервер поднимается на `0.0.0.0:8080`. Полезные проверки без мобильного приложения:
+
+```bash
+# Подключиться к потоку алертов (например, websocat)
+websocat ws://localhost:8080/ws/alerts
+
+# Вручную вызвать конкретный сценарий (см. AlertType в core-alert/.../Alert.kt)
+curl -X POST http://localhost:8080/simulate/sos
+curl -X POST http://localhost:8080/simulate/woke_up
+curl -X POST http://localhost:8080/simulate/long_bathroom_time
+curl -X POST http://localhost:8080/simulate/not_returned_home
+curl -X POST http://localhost:8080/simulate/no_activity
+curl -X POST http://localhost:8080/simulate/device_offline
+curl -X POST http://localhost:8080/simulate/motion
+```
+
+Без ручного триггера сервер сам рассылает случайный сценарий каждые 30–90 секунд. Если ни один
+клиент не подтвердил алерт (ACK) за 8 секунд — или клиентов нет вовсе — уходит fallback в
+Telegram.
+
+### 2. Клиенты
+
+Адрес бэкенда захардкожен в `sharedLogic/src/androidMain` и `sharedLogic/src/iosMain`
+(`AppContainer.kt`, поле `backendUrl`) — под конкретное окружение тестирования его нужно менять
+руками:
+
+| Клиент | Адрес по умолчанию | Когда менять |
+|---|---|---|
+| Android-эмулятор | `ws://10.0.2.2:8080/ws/alerts` | не нужно (loopback на хост из коробки) |
+| iOS-симулятор | `ws://localhost:8080/ws/alerts` | не нужно (симулятор шарит сеть хоста) |
+| Реальное устройство | — | указать LAN IP хоста или `ngrok`-туннель |
+
+**Android:**
+
+```bash
+./gradlew :androidApp:installDevDebug
+```
+
+или через run-конфигурацию IDE (`androidApp`, флейвор `dev`).
+
+**iOS:** открыть [`iosApp/iosApp.xcodeproj`](./iosApp/iosApp.xcodeproj) в Xcode и запустить на
+симуляторе/устройстве. Из терминала:
+
+```bash
+xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp \
+  -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17' build
+```
+
+Приложение открывается сразу на экране Dashboard (без BLE-сопряжения) и подключается к
+бэкенду автоматически. Кнопка "Disconnect"/"Reconnect" на Dashboard/Monitoring — для ручной
+проверки сценария разрыва соединения и Telegram-fallback.
 
 ---
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+Подробнее про Kotlin Multiplatform: [официальная документация](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html).
