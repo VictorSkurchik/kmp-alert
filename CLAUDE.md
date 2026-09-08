@@ -1,117 +1,122 @@
 # CLAUDE.md
 
-## Архитектура
+## Architecture
 
 Kotlin Multiplatform + Compose Multiplatform, Clean Architecture (core `domain`/`data`/`ui` +
-`feature-*` модули), Koin для DI, SOLID. UI и навигация — общие для Android и iOS: единый
-Compose Multiplatform слой поверх Navigation 3 (`org.jetbrains.androidx.navigation3`).
-iOS-приложение — тонкая SwiftUI-обвязка (`iOSApp.swift`/`ComposeView.swift`), которая только
-инициализирует Koin (`KoinKt.doInitKoin`) и хостит Compose-контент через `MainViewController()`
-(`ComposeUIViewController`) — весь UI-стейт и DI остаются внутри Compose/Koin и не пересекают
-границу Swift, поэтому SKIE не используется вовсе.
+`feature-*` modules), Koin for DI, SOLID. UI and navigation are shared between Android and iOS:
+a single Compose Multiplatform layer on top of Navigation 3
+(`org.jetbrains.androidx.navigation3`). The iOS app is a thin SwiftUI wrapper
+(`iOSApp.swift`/`ComposeView.swift`) that only initializes Koin (`KoinKt.doInitKoin`) and hosts
+the Compose content via `MainViewController()` (`ComposeUIViewController`) — all UI state and DI
+stay inside Compose/Koin and never cross the Swift boundary, so SKIE is not used at all.
 
-Технология Wi-Fi Sensing полностью симулируется на бэкенде (модуль `server`) — никакого
-физического датчика нет. Критичные алерты доставляются клиентам по постоянному WebSocket-
-соединению с подтверждением получения (ACK); если клиент не подтвердил алерт за N секунд,
-сервер дублирует его в Telegram-бота как гарантированный fallback-канал (устойчивость к
-недоступности FCM/APNs).
+Wi-Fi Sensing technology is fully simulated on the backend (the `server` module) — there is no
+physical sensor. Critical alerts are delivered to clients over a persistent WebSocket connection
+with delivery acknowledgment (ACK); if a client doesn't ACK an alert within N seconds, the server
+duplicates it to a Telegram bot as a guaranteed fallback channel (resilience against
+FCM/APNs unavailability).
 
-Модули:
-- `androidApp` — Android-приложение: `BleAlertApplication` стартует Koin, `MainActivity` —
-  только разрешения на уведомления и `setContent { App() }`.
-- `iosApp` — Xcode-проект, тонкая обвязка над Compose Multiplatform UI, линкует фреймворк `SharedUI`.
-- `core-domain` — чистый domain-слой: `Alert`/`AlertType`/`AlertSeverity` (`@Serializable`,
-  общий wire-контракт с `server`, единственный модуль с `jvm()`-таргетом ради этого),
-  `ConnectionState`, интерфейсы `AlertRepository`/`AlertNotifier`/`NotificationPermissionManager`.
-  Не знает ни про Android/iOS, ни про способ доставки алертов.
-- `core-data` — реализация `core-domain`: `AlertRepositoryImpl` (WebSocket-клиент на Ktor,
-  реконнект с backoff, ACK-протокол), платформенные `AlertNotifier`/`NotificationPermissionManager`
-  (Android/iOS), Koin-модули (`dataModule`, `platformAlertModule`). `NotificationService` —
-  внутренняя деталь реализации, наружу торчит только `AlertRepository`.
-- `core-ui` — общие Compose-компоненты, используемые ≥2 фичами (тема, `AlertRow`,
-  `ConnectionStatusBar` и т.д.); зависит от `core-domain`. Единственный модуль с
-  `compose.resources { publicResClass = true }` — его строки (`no_alerts_yet`,
-  `alert_type_*`, `connection_state_*` и т.д.) видны feature-модулям.
-- `feature-dashboard`, `feature-monitoring`, `feature-settings` — по одному экрану на модуль,
-  каждый со своей ViewModel и Koin-модулем (`dashboardModule`/`monitoringModule`/
-  `settingsModule`), presentation-only — данные и домен всегда общие (`core-domain`/`core-data`),
-  отдельного data/domain-слоя внутри фичи нет, так как ни у одной из них нет уникального
-  источника данных.
-- `sharedUI` — тонкий composition root: `App.kt` (Navigation 3 `NavDisplay`, резолвит
-  ViewModel'и фич через `koinViewModel()`), `di/Koin.kt` (`initKoin`, собирает модули всех
-  core/feature-модулей), `ui/appshell/` (`AppBottomBar`/`MainScaffold`), `ui/navigation/`
-  (`Route`/`AppTab`). Единственный модуль, который iOS импортирует напрямую (framework
-  `SharedUI`, без `export()` — Swift вызывает только `MainViewController()`/`doInitKoin`).
-  Локализация — через `compose.components.resources` (`values/strings.xml` = русский по
-  умолчанию, `values-en/strings.xml` = английский по системной локали устройства); у каждого
-  модуля со своими строками — свой набор `values{,-en}/strings.xml`.
-- `server` — Ktor-бэкенд (JVM, Netty): симулятор Wi-Fi Sensing событий, WebSocket-рассылка
-  с ACK-таймаутом, Telegram-fallback. Не входит в KMP-таргеты клиентов, зависит только от
-  `core-domain`. Настройки (`TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID`) — только через переменные
-  окружения/`server/.env` (в `.gitignore`, см. `server/.env.example`), никогда не в исходниках.
+Modules:
+- `androidApp` — Android app: `BleAlertApplication` starts Koin, `MainActivity` only handles the
+  notification permission and `setContent { App() }`.
+- `iosApp` — Xcode project, a thin wrapper over the shared Compose Multiplatform UI, links the
+  `SharedUI` framework.
+- `core-domain` — pure domain layer: `Alert`/`AlertType`/`AlertSeverity` (`@Serializable`, the
+  shared wire contract with `server`, the only module with a `jvm()` target for that reason),
+  `ConnectionState`, the `AlertRepository`/`AlertNotifier`/`NotificationPermissionManager`
+  interfaces. Knows nothing about Android/iOS or how alerts are delivered.
+- `core-data` — implementation of `core-domain`: `AlertRepositoryImpl` (Ktor-based WebSocket
+  client, reconnect with backoff, ACK protocol), platform `AlertNotifier`/
+  `NotificationPermissionManager` (Android/iOS), Koin modules (`dataModule`,
+  `platformAlertModule`). `NotificationService` is an internal implementation detail — only
+  `AlertRepository` is exposed.
+- `core-ui` — shared Compose components used by ≥2 features (theme, `AlertRow`,
+  `ConnectionStatusBar`, etc.); depends on `core-domain`. The only module with
+  `compose.resources { publicResClass = true }` — its strings (`no_alerts_yet`,
+  `alert_type_*`, `connection_state_*`, etc.) are visible to feature modules.
+- `feature-dashboard`, `feature-monitoring`, `feature-settings` — one screen per module, each
+  with its own ViewModel and Koin module (`dashboardModule`/`monitoringModule`/
+  `settingsModule`), presentation-only — data and domain are always shared (`core-domain`/
+  `core-data`); there's no separate data/domain layer inside a feature since none of them has a
+  unique data source.
+- `sharedUI` — thin composition root: `App.kt` (Navigation 3 `NavDisplay`, resolves feature
+  ViewModels via `koinViewModel()`), `di/Koin.kt` (`initKoin`, aggregates all core/feature
+  modules), `ui/appshell/` (`AppBottomBar`/`MainScaffold`), `ui/navigation/` (`Route`/`AppTab`).
+  The only module iOS imports directly (the `SharedUI` framework, without `export()` — Swift
+  only calls `MainViewController()`/`doInitKoin`). Localization goes through
+  `compose.components.resources` (`values/strings.xml` = Russian by default, `values-en/
+  strings.xml` = English, following the device's system locale); every module with its own
+  strings has its own `values{,-en}/strings.xml` set.
+- `server` — Ktor backend (JVM, Netty): Wi-Fi Sensing event simulator, WebSocket broadcast with
+  ACK timeout, Telegram fallback. Not part of the clients' KMP targets, depends only on
+  `core-domain`. Settings (`TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID`) come only from environment
+  variables/`server/.env` (gitignored, see `server/.env.example`), never from source.
 
-`core-domain`/`core-data`/`core-ui` и `feature-*` не знают про Android/iOS приложения — только
-`sharedUI` объединяет их в готовое приложение через Koin.
+`core-domain`/`core-data`/`core-ui` and `feature-*` know nothing about the Android/iOS apps —
+only `sharedUI` wires them together into a finished app through Koin.
 
-BLE-стек (`core-ble`, экран Scan) и Python-демон на Asus Tinker Board (`tinkerboard-daemon/`)
-удалены из репозитория — полностью заменены backend-симуляцией Wi-Fi Sensing.
+The BLE stack (`core-ble`, the Scan screen) and the Python daemon for the Asus Tinker Board
+(`tinkerboard-daemon/`) have been removed from the repository — fully replaced by the backend
+Wi-Fi Sensing simulation.
 
-Тесты в первой итерации не пишем.
+We don't write tests in the first iteration.
 
-## Git: коммиты
+## Git: commits
 
-Никогда не добавлять агента в соавторы коммита. Не добавлять trailer вида
-`Co-Authored-By: Claude ...` — коммиты оформляются только от имени автора.
+Never add the agent as a commit co-author. Do not add a
+`Co-Authored-By: Claude ...` trailer — commits are authored solely by the human author.
 
-Сообщения коммитов — Conventional Commits: `<type>(<scope>): <субъект>`, тип обязателен,
-scope — опционален.
+Commit messages must be written in English.
 
-Допустимые типы:
+Commit messages follow Conventional Commits: `<type>(<scope>): <subject>`, type is required,
+scope is optional.
 
-| Тип      | Когда использовать                                  |
-|----------|------------------------------------------------------|
-| feat     | новая функциональность                                |
-| fix      | исправление бага                                      |
-| docs     | только документация (README, комментарии, CLAUDE.md)  |
-| style    | форматирование, без изменения логики                  |
-| refactor | изменение кода без изменения поведения                |
-| perf     | улучшение производительности                          |
-| test     | добавление/правка тестов                              |
-| build    | сборка, зависимости, Gradle-конфигурация               |
-| ci       | CI/CD конфигурация                                    |
-| chore    | всё остальное (init, обслуживание репозитория)         |
-| revert   | откат предыдущего коммита                              |
+Allowed types:
+
+| Type     | When to use                                    |
+|----------|-------------------------------------------------|
+| feat     | new functionality                                |
+| fix      | bug fix                                          |
+| docs     | documentation only (README, comments, CLAUDE.md) |
+| style    | formatting, no logic change                      |
+| refactor | code change without behavior change              |
+| perf     | performance improvement                          |
+| test     | adding/fixing tests                              |
+| build    | build, dependencies, Gradle configuration        |
+| ci       | CI/CD configuration                              |
+| chore    | everything else (init, repo maintenance)         |
+| revert   | reverting a previous commit                      |
 
 ## Git: branching
 
-- `main` — стабильная ветка, отражает выпущенное состояние.
-- `develop` — основная ветка интеграции, все фичи сливаются сюда.
-- `feature/<название>` — ветка фичи, ответвляется от `develop` и вливается обратно в `develop`.
+- `main` — stable branch, reflects the released state.
+- `develop` — main integration branch, all features merge here.
+- `feature/<name>` — feature branch, branches off `develop` and merges back into `develop`.
 
-Сейчас (ранняя стадия проекта): фича-ветки заливаются в `develop` напрямую, без PR. Это
-временная политика для старта проекта, а не постоянное правило.
+Currently (early project stage): feature branches are pushed directly into `develop`, without a
+PR. This is a temporary policy for kicking off the project, not a permanent rule.
 
-## Версионирование клиентов
+## Client versioning
 
-`versionName` — SemVer: `MAJOR.MINOR.PATCH` (например `1.0.0`).
+`versionName` — SemVer: `MAJOR.MINOR.PATCH` (e.g. `1.0.0`).
 
-Тип сборки добавляет суффикс к версии:
-- debug-сборка → суффикс `-debug`
-- release-сборка → суффикс `-release`
+The build type adds a suffix to the version:
+- debug build → `-debug` suffix
+- release build → `-release` suffix
 
-Итоговая версия — это база + суффикс флейвора + суффикс типа сборки, например
+The final version is the base plus the flavor suffix plus the build type suffix, e.g.
 `1.0.0-dev-debug`, `1.0.0-release`.
 
 ## Product flavors (Android)
 
-Три флейвора по окружению — `dev`, `stage`, `prod`:
+Three flavors by environment — `dev`, `stage`, `prod`:
 
-- `dev` и `stage` получают свой `applicationIdSuffix` и `versionNameSuffix`, чтобы ставиться
-  на устройство одновременно с `prod` без конфликта.
-- `prod` — целевой публичный `applicationId`, без суффикса.
+- `dev` and `stage` get their own `applicationIdSuffix` and `versionNameSuffix` so they can be
+  installed on a device alongside `prod` without conflicts.
+- `prod` — the target public `applicationId`, no suffix.
 
-Конфигурация — в `androidApp/build.gradle.kts` (`flavorDimensions`/`productFlavors`).
+Configuration lives in `androidApp/build.gradle.kts` (`flavorDimensions`/`productFlavors`).
 
-## Лицензия
+## License
 
-Проект распространяется под Apache License 2.0 (`LICENSE` в корне репозитория).
+The project is distributed under the Apache License 2.0 (`LICENSE` at the repo root).

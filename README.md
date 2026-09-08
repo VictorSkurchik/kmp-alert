@@ -27,18 +27,13 @@ WebSocket с подтверждением получения (ACK); при не�
 
 ### 1. Бэкенд (`server`)
 
-Нужен Telegram-бот (токен от [@BotFather](https://t.me/BotFather)) и `chat_id`, куда слать
-fallback-сообщения.
-
 ```bash
-cp server/.env.example server/.env
-# впишите в server/.env реальные TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID
 ./gradlew :server:run
 ```
 
-`server/.env` в `.gitignore` — секреты никогда не коммитятся. Gradle-таск `:server:run`
-подхватывает переменные из `server/.env` автоматически (см. `server/build.gradle.kts`); без
-файла нужно экспортировать `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID` в окружении вручную.
+Telegram-fallback настраивается через переменные окружения (см. `server/.env.example`) —
+подхватываются Gradle-таском `:server:run` автоматически из `server/.env`, который в
+`.gitignore` и никогда не коммитится.
 
 Сервер поднимается на `0.0.0.0:8080`. Полезные проверки без мобильного приложения:
 
@@ -46,7 +41,7 @@ cp server/.env.example server/.env
 # Подключиться к потоку алертов (например, websocat)
 websocat ws://localhost:8080/ws/alerts
 
-# Вручную вызвать конкретный сценарий (см. AlertType в core-alert/.../Alert.kt)
+# Вручную вызвать конкретный сценарий (см. AlertType в core-domain/.../Alert.kt)
 curl -X POST http://localhost:8080/simulate/sos
 curl -X POST http://localhost:8080/simulate/woke_up
 curl -X POST http://localhost:8080/simulate/long_bathroom_time
@@ -71,6 +66,16 @@ Telegram.
 | Android-эмулятор | `ws://10.0.2.2:8080/ws/alerts` | не нужно (loopback на хост из коробки) |
 | iOS-симулятор | `ws://localhost:8080/ws/alerts` | не нужно (симулятор шарит сеть хоста) |
 | Реальное устройство | — | указать LAN IP хоста или `ngrok`-туннель |
+
+Разные значения по умолчанию — не случайность, а два разных способа адресации хоста
+(`10.0.2.2` — специальный алиас хоста внутри NAT-сети Android-эмулятора, `localhost` — потому
+что iOS-симулятор физически работает в сети хоста, а не в отдельной ВМ). Сервер слушает
+`0.0.0.0:8080` (см. `server/src/main/kotlin/.../Application.kt`), поэтому один и тот же LAN IP
+хоста (`ipconfig getifaddr en0` на macOS) тоже подходит одновременно для эмулятора, симулятора
+и реального устройства в одной Wi-Fi-сети — если нужно гонять оба клиента против одного и того
+же адреса без переключения конфигурации, впишите его в оба `BackendConfig.*.kt` вместо
+`10.0.2.2`/`localhost`. Недостаток такого подхода — IP меняется при смене сети, поэтому
+платформенные алиасы остаются вариантом по умолчанию, не требующим ручной настройки.
 
 **Android:**
 
