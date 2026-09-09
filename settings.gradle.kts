@@ -1,6 +1,8 @@
 rootProject.name = "kmp-ble-alert"
 
 pluginManagement {
+    includeBuild("build-logic")
+
     repositories {
         google {
             mavenContent {

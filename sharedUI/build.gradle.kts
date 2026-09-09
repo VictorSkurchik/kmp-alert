@@ -1,10 +1,5 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidMultiplatformLibrary)
-    alias(libs.plugins.composeMultiplatform)
-    alias(libs.plugins.composeCompiler)
+    id("blealert.kmp.feature")
     alias(libs.plugins.kotlinSerialization)
 }
 
@@ -21,18 +16,7 @@ kotlin {
 
     android {
        namespace = "by.vsdev.blealert.sharedUI"
-       compileSdk = libs.versions.android.compileSdk.get().toInt()
-       minSdk = libs.versions.android.minSdk.get().toInt()
 
-       compilerOptions {
-           jvmTarget = JvmTarget.JVM_11
-       }
-       androidResources {
-           enable = true
-       }
-       withHostTest {
-           isIncludeAndroidResources = true
-       }
        withDeviceTestBuilder {
            sourceSetTreeName = "test"
        }.configure {
@@ -52,11 +36,6 @@ kotlin {
             implementation(project(":feature-dashboard"))
             implementation(project(":feature-monitoring"))
             implementation(project(":feature-settings"))
-            implementation(libs.compose.runtime)
-            implementation(libs.compose.foundation)
-            implementation(libs.compose.material3)
-            implementation(libs.compose.ui)
-            implementation(libs.compose.components.resources)
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
@@ -65,9 +44,6 @@ kotlin {
             implementation(libs.compose.material.iconsExtended)
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
-        }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
         }
     }
 }
