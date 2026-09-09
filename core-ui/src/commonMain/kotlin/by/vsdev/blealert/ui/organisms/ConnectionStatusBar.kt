@@ -40,9 +40,8 @@ fun ConnectionStatusBar(
             when (state) {
                 ConnectionState.CONNECTED, ConnectionState.CONNECTING ->
                     PrimaryButton(text = stringResource(Res.string.action_disconnect), onClick = onDisconnect)
-                ConnectionState.DISCONNECTED ->
+                ConnectionState.DISCONNECTED, ConnectionState.IDLE ->
                     PrimaryButton(text = stringResource(Res.string.action_reconnect), onClick = onReconnect)
-                ConnectionState.IDLE -> Unit
             }
         }
     }
