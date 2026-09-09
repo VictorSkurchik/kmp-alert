@@ -13,6 +13,7 @@ import io.ktor.server.routing.routing
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readText
 import io.ktor.server.websocket.WebSockets
+import io.ktor.server.websocket.pingPeriod
 import io.ktor.server.websocket.webSocket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -41,7 +42,7 @@ fun main() {
 }
 
 fun Application.module(broadcaster: AlertBroadcaster, simulator: AlertSimulator) {
-    install(WebSockets)
+    install(WebSockets) { pingPeriod = 15.seconds }
 
     routing {
         webSocket("/ws/alerts") {

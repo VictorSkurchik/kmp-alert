@@ -36,7 +36,10 @@ internal class AlertRepositoryImpl(
         notificationService.alerts()
             .onEach { alert ->
                 historyStore.record(alert)
-                alertNotifier.notify(alert)
+                // A single alert's local notification failing (e.g. a denied POST_NOTIFICATIONS
+                // permission on Android) must never take down this collector - that would silently
+                // stop acking and recording every alert for the rest of the process's lifetime.
+                runCatching { alertNotifier.notify(alert) }
                 notificationService.acknowledge(alert.id)
             }
             .launchIn(scope)

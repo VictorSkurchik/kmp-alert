@@ -5,6 +5,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.WebSockets
+import io.ktor.client.plugins.websocket.pingInterval
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.websocket.Frame
 import io.ktor.websocket.close
@@ -22,6 +23,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * WebSocket-backed [NotificationService]. Every host value below needs to match wherever the
@@ -42,7 +44,7 @@ internal class WebSocketNotificationService(
     private val _alerts = MutableSharedFlow<Alert>(extraBufferCapacity = 16)
     override fun alerts(): Flow<Alert> = _alerts.asSharedFlow()
 
-    private val client = HttpClient(CIO) { install(WebSockets) }
+    private val client = HttpClient(CIO) { install(WebSockets) { pingInterval = 15.seconds } }
     private var session: DefaultClientWebSocketSession? = null
     private var connectionJob: Job? = null
 
