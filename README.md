@@ -93,8 +93,7 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp \
   -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17' build
 ```
 
-Приложение открывается сразу на экране Dashboard (без BLE-сопряжения) и подключается к
-бэкенду автоматически. Кнопка "Disconnect"/"Reconnect" на Dashboard/Monitoring — для ручной
+Приложение открывается сразу на экране Dashboard и подключается к бэкенду автоматически. Кнопка "Disconnect"/"Reconnect" на Dashboard/Monitoring — для ручной
 проверки сценария разрыва соединения и Telegram-fallback.
 
 ---
