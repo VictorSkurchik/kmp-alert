@@ -50,7 +50,7 @@ fun Application.module(broadcaster: AlertBroadcaster, simulator: AlertSimulator)
                 for (frame in incoming) {
                     if (frame is Frame.Text) {
                         val ack = runCatching { json.decodeFromString<AckMessage>(frame.readText()) }.getOrNull()
-                        if (ack?.type == "ack") broadcaster.onAck(ack.alertId)
+                        if (ack?.type == "ack") broadcaster.onAck(ack.alertId, this)
                     }
                 }
             } finally {
