@@ -5,6 +5,7 @@ import io.ktor.server.websocket.DefaultWebSocketServerSession
 import io.ktor.websocket.Frame
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -24,7 +25,9 @@ class AlertBroadcaster(
 ) {
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val sessions = CopyOnWriteArrayList<DefaultWebSocketServerSession>()
-    private val pendingAcks = ConcurrentHashMap<String, CompletableDeferred<Unit>>()
+
+    // alertId -> (session -> that session's own ACK), so one client's ACK never satisfies another's.
+    private val pendingAcks = ConcurrentHashMap<String, ConcurrentHashMap<DefaultWebSocketServerSession, CompletableDeferred<Unit>>>()
 
     fun register(session: DefaultWebSocketServerSession) {
         sessions.add(session)
@@ -36,30 +39,33 @@ class AlertBroadcaster(
         println("Client disconnected, ${sessions.size} session(s) active")
     }
 
-    fun onAck(alertId: String) {
-        if (pendingAcks.remove(alertId)?.complete(Unit) == true) {
-            println("ACK received for alert $alertId")
+    fun onAck(alertId: String, session: DefaultWebSocketServerSession) {
+        if (pendingAcks[alertId]?.get(session)?.complete(Unit) == true) {
+            println("ACK received for alert $alertId from a client")
         }
     }
 
     suspend fun broadcast(alert: Alert) {
-        println("Broadcasting ${alert.type} (${alert.severity}) to ${sessions.size} session(s)")
-        if (sessions.isEmpty()) {
+        val targets = sessions.toList()
+        println("Broadcasting ${alert.type} (${alert.severity}) to ${targets.size} session(s)")
+        if (targets.isEmpty()) {
             telegram.sendFallback(alert)
             return
         }
 
-        val deferred = CompletableDeferred<Unit>()
-        pendingAcks[alert.id] = deferred
+        val perSessionAcks = ConcurrentHashMap<DefaultWebSocketServerSession, CompletableDeferred<Unit>>()
+        targets.forEach { perSessionAcks[it] = CompletableDeferred() }
+        pendingAcks[alert.id] = perSessionAcks
+
         val frame = Frame.Text(json.encodeToString(AlertEnvelope.serializer(), AlertEnvelope(payload = alert)))
-        sessions.forEach { session ->
+        targets.forEach { session ->
             runCatching { session.send(frame) }
         }
 
-        val acked = withTimeoutOrNull(ackTimeout) { deferred.await() }
+        val allAcked = withTimeoutOrNull(ackTimeout) { perSessionAcks.values.awaitAll() }
         pendingAcks.remove(alert.id)
-        if (acked == null) {
-            println("No ACK for alert ${alert.id} within $ackTimeout, falling back to Telegram")
+        if (allAcked == null) {
+            println("Not all clients acked alert ${alert.id} within $ackTimeout, falling back to Telegram")
             telegram.sendFallback(alert)
         }
     }
